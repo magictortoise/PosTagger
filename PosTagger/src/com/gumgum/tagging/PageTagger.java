@@ -9,6 +9,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.io.*;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 public class PageTagger {
 
 	MaxentTagger tagger =  new MaxentTagger("english-left3words-distsim.tagger");
@@ -21,7 +24,7 @@ public class PageTagger {
 	}
 	
 	public String getText(String link) {
-		return parseHTMLcontent(getHTMLContent(link));
+		return getHTMLContent(link);
 	}
 	
 	private String getHTMLContent(String link) {
@@ -38,15 +41,15 @@ public class PageTagger {
 			/* If Content-Type doesn't match this pre-conception, choose default one. */
 			String charset = m.matches() ? m.group(1) : "utf-8";
 			r = new InputStreamReader(conn.getInputStream(), charset);
-			StringBuilder buf = new StringBuilder();
-			while (true) {
-			  int ch = r.read();
-			  if (ch < 0)
-			    break;
-			  buf.append((char) ch);
-			}
-			content = buf.toString();
-			//content = buf.toString().replaceAll("\\<.*?>","");
+			BufferedReader br = new BufferedReader(r);
+			StringBuilder sb = new StringBuilder();
+			String line;
+			while ( (line=br.readLine()) != null) {
+				System.out.println(Jsoup.parse(line).text());
+			      sb.append(Jsoup.parse(line).text());
+			    }
+			//content = Jsoup.parse(sb.toString()).text();
+			content = sb.toString();
 			r.close();
 			
 		} catch (MalformedURLException e) {
@@ -61,7 +64,7 @@ public class PageTagger {
 	
 	private String parseHTMLcontent(String content) {
 	    // Replace anything between script and remove some white space
-		String scriptregex = "<script[^>]*>(.*?)</script>";
+		String scriptregex = "<(script|style)[^>]*>[^<]*</(script|style)>";
 	    Pattern p1 = Pattern.compile(scriptregex,Pattern.CASE_INSENSITIVE);
 	    Matcher m1 = p1.matcher(content);
 	    int count = 0;
@@ -71,7 +74,7 @@ public class PageTagger {
 	    System.out.println("Removed " + count + " script & style tags");
 	    // Replace any matches with nothing
 	    content = m1.replaceAll("");
-
+	    
 	    // A Regex to match anything in between <>
 	    // Reads as: Match a "<"
 	    // Match one or more characters that are not ">"
@@ -97,9 +100,17 @@ public class PageTagger {
 
 	}
 	
+	private String parseHTMLcontent2(String content) {
+		return Jsoup.parse(content).text(); 
+		
+	}
+	
 	public static void main(String[] args) {
 
-		String link = "http://gumgum.com/";
+		//String link = "http://gumgum.com/";
+		//String link = "http://www.popcrunch.com/jimmy-kimmel-engaged/";
+		String link = "http://gumgum-public.s3.amazonaws.com/numbers.html";
+		//String link = "http://www.windingroad.com/articles/reviews/quick-drive-2012-bmw-z4-sdrive28i/";
 
 		PageTagger taggerTest = new PageTagger();
 		String cleanContent = taggerTest.getText(link);
