@@ -100,7 +100,10 @@ public class PageTagger {
 	public static void main(String[] args) {
 
 		String link = "http://gumgum.com/";
-
+		//String link = "http://www.popcrunch.com/jimmy-kimmel-engaged/";
+		//String link = "http://gumgum-public.s3.amazonaws.com/numbers.html"; // OutOfMemoryError Java heap
+		//String link = "http://www.windingroad.com/articles/reviews/quick-drive-2012-bmw-z4-sdrive28i/";
+		
 		PageTagger taggerTest = new PageTagger();
 		String cleanContent = taggerTest.getText(link);
 		String taggerContent = taggerTest.tagText(cleanContent);
